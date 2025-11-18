@@ -8,30 +8,52 @@ This guide provides step-by-step instructions for running the S3 download pipeli
 # 1. Connect to the cluster
 ssh compute.dundee.ac.uk
 
-# 2. Request an interactive session with 10 cores
+# 2. Start a screen session (protects against connection loss)
+screen -S snakemake_job
+
+# If connection drops, reconnect with:
+# ssh compute.dundee.ac.uk
+# screen -r snakemake_job
+
+# 3. Request an interactive session with 10 cores
 qrsh -pe smp 10
 
-# 3. Navigate to your lab folder
+# 4. Navigate to your lab folder
 cd /cluster/majf_lab/mtinti  # Replace with your lab folder path
 
-# 4. Clone the repository
+# 5. Clone the repository
 git clone https://github.com/mtinti/download_data.git
 
-# 5. Create and activate conda environment
+# 6. Create and activate conda environment
 conda create -n snakemake snakemake
 conda activate snakemake
 
-# 6. Navigate to the repository
+# 7. Navigate to the repository
 cd download_data
 
-# 7. Configure the pipeline
+# 8. Configure the pipeline
 nano config/config.yml  # Add your AWS credentials and bucket info
 
-# 8. Run the pipeline
+# 9. Run the pipeline
 snakemake --use-conda --cores 10
 ```
 
 ## Important Notes
+
+### Screen Session Management
+
+Using `screen` protects your work if your SSH connection drops. Key commands:
+
+**Inside a screen session:**
+- `Ctrl+A, D` - Detach from screen (keeps it running in background)
+- `Ctrl+A, K` - Kill the current screen session
+
+**From the login node:**
+```bash
+screen -ls                      # List all your screen sessions
+screen -r snakemake_job         # Reconnect to your named session
+screen -X -S snakemake_job quit # Kill a specific session
+```
 
 ### Core Allocation
 Set `--cores` to be less than or equal to:
