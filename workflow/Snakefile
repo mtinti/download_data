@@ -1,0 +1,29 @@
+from pathlib import Path
+
+from snakemake.exceptions import WorkflowError
+
+
+shell.executable("/bin/bash")
+
+
+aws_cfg = config.get("aws", {})
+if not aws_cfg:
+    raise WorkflowError("Missing 'aws' section in config/config.yml")
+
+
+DOWNLOAD_DIR = Path(config.get("download_dir", "Downloads"))
+SYNC_MARKER = DOWNLOAD_DIR / "sync_complete.txt"
+
+
+snakemake_cfg = config.get("snakemake", {})
+
+
+bucket_name = aws_cfg.get("bucket")
+if not bucket_name:
+    raise WorkflowError("'aws.bucket' must be set in config/config.yml")
+
+bucket_uri = bucket_name if bucket_name.startswith("s3://") else f"s3://{bucket_name}"
+
+
+include: "rules/sync.smk"
+include: "rules/checksum.smk"

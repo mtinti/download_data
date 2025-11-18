@@ -1,0 +1,7 @@
+name: sync-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - awscli>=2.15
+  - coreutils

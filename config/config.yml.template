@@ -1,0 +1,20 @@
+# S3 Download & Validation Pipeline Configuration Template
+# Copy this file to config.yml and replace placeholders with your actual values
+
+aws:
+  bucket: "your-bucket-name"              # S3 bucket name or s3://bucket-name
+  region: "us-east-1"                     # AWS region (e.g., us-east-1, eu-central-1)
+  access_key_id: "YOUR_ACCESS_KEY_ID"     # AWS access key ID
+  secret_access_key: "YOUR_SECRET_KEY"    # AWS secret access key
+  sync_extra_args: []                     # Optional: extra args for aws s3 sync (e.g., ["--exclude", "*.tmp"])
+
+download_dir: "Downloads"                 # Directory where files will be downloaded
+
+validation:
+  md5_filenames:                          # MD5 checksum filenames to search for (in priority order)
+    - "md5.txt"
+    - "md5sum_check.txt"
+  validation_dir: "validation"            # Validation metadata directory name
+
+snakemake:
+  sync_threads: 4                        # Number of cores for sync job
