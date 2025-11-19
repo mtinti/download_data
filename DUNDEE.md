@@ -34,7 +34,9 @@ cd download_data
 # 7b. git pull (this step is every time)
 
 # 8. Configure the pipeline
-vim config/config.yml  # Add your AWS credentials and bucket info
+vim config/config.yml.template  # Add your AWS credentials and bucket info to the file, save it as config/config.yml
+
+
 
 # 9. Run the pipeline
 snakemake --use-conda --cores 10
