@@ -21,7 +21,7 @@ qrsh -pe smp 10
 # 4. Navigate to your lab folder
 cd /cluster/majf_lab/mtinti  # Replace with your lab folder path
 
-# 5. Clone the repository
+# 5. Clone the repository (this is done only once
 git clone https://github.com/mtinti/download_data.git
 
 # 6. Create and activate conda environment
@@ -30,6 +30,7 @@ conda activate snakemake
 
 # 7. Navigate to the repository
 cd download_data
+# 7b. git pull (THis is done ot fetch any updates from the git repo)
 
 # 8. Configure the pipeline
 nano config/config.yml  # Add your AWS credentials and bucket info
