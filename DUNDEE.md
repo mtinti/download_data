@@ -21,10 +21,10 @@ qrsh -pe smp 10
 # 4. Navigate to your lab folder
 cd /cluster/majf_lab/mtinti  # Replace with your lab folder path
 
-# 5. Clone the repository (this is done only once
+# 5. Clone the repository (this step is done only once)
 git clone https://github.com/mtinti/download_data.git
 
-# 6. Create and activate conda environment
+# 6. Create and activate conda environment (this step is done only once)
 conda create -n snakemake snakemake
 conda activate snakemake
 
