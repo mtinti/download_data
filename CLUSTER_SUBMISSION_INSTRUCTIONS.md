@@ -2,7 +2,15 @@
 
 ## Overview
 
-The `submit_snakemake_cluster.sh` script runs the Snakemake workflow on the cluster using TMPDIR for downloads, then copies results back to the final `Downloads` directory.
+The `submit_snakemake_cluster.sh` script copies your entire project to TMPDIR (fast local disk), runs the Snakemake workflow there, then copies results back to your submission directory.
+
+## Prerequisites
+
+**Important**: Before submitting, ensure you have:
+1. Activated your conda environment with snakemake and aws-cli installed
+2. Configured your `config/config.yml` file with AWS credentials
+
+The script uses the `-V` flag to export your current environment variables to the compute node.
 
 ## Before Submitting
 
@@ -19,17 +27,16 @@ Edit `submit_snakemake_cluster.sh` and modify these SGE directives based on your
 ```
 
 **Important**:
-- Set `local_free` based on expected download size (default: 200G)
+- Set `local_free` based on expected download size PLUS project size (default: 200G)
 - Set `m_mem_free` based on memory requirements (default: 20G per core)
 - Set `smp` to number of parallel downloads/cores (default: 40)
 - Update the `CORES` variable in the script to match `-pe smp`
 
-### 2. Update Configuration Variables
+### 2. Update CORES Variable
 
-In the script, update these variables if needed:
+In the script, update this variable to match your `-pe smp` value:
 
 ```bash
-DOWNLOAD_DIR="Downloads"   # Final destination directory
 CORES=40                   # Should match -pe smp value
 ```
 
@@ -37,9 +44,13 @@ CORES=40                   # Should match -pe smp value
 
 ### Basic Submission
 
-From the workflow directory:
+From the workflow directory, with your conda environment activated:
 
 ```bash
+# Ensure conda environment is activated
+conda activate snakemake
+
+# Submit the job
 qsub submit_snakemake_cluster.sh
 ```
 
@@ -59,13 +70,26 @@ tail -f snakemake_download_errors_<JOB_ID>
 
 ## How It Works
 
-1. **TMPDIR Setup**: Creates temporary download directory in `$TMPDIR` (fast local disk on compute node)
+1. **Environment Export**: The `-V` flag exports your current conda environment to the compute node
 
-2. **Snakemake Override**: Runs Snakemake with `--config download_dir="${TMP_DOWNLOAD_DIR}"` to redirect downloads to TMPDIR
+2. **Project Copy**: Copies entire project to `$TMPDIR` (excluding .git, .snakemake, Downloads)
 
-3. **Copy Back**: After successful completion, copies all files from TMPDIR to final `Downloads` directory
+3. **Run from TMPDIR**: Changes to TMPDIR copy and runs Snakemake there
+   - All downloads go to `$TMPDIR/Downloads` (fast local disk)
+   - All intermediate files stay in TMPDIR
 
-4. **User Visibility**: The user still sees `:Downloads` bucket in the directory as expected
+4. **Copy Results Back**: After completion, copies:
+   - `Downloads/` directory to your submission directory
+   - `logs/` directory to your submission directory
+
+5. **User Visibility**: Final results appear in your submission directory's `Downloads/` folder
+
+## Advantages of This Approach
+
+- **No conda activation needed** - Uses your existing environment via `-V` flag
+- **Fast I/O** - All operations happen on local TMPDIR disk
+- **Simple** - No need for download_dir overrides
+- **Clean** - Temporary files stay in TMPDIR and are auto-cleaned
 
 ## Troubleshooting
 
@@ -75,7 +99,7 @@ If the job fails during Snakemake execution, files remain in TMPDIR and are lost
 
 ### Insufficient TMPDIR Space
 
-If downloads exceed `local_free` allocation:
+If downloads + project size exceed `local_free` allocation:
 - Increase `#$ -adds l_hard local_free` value
 - Monitor with `df -h $TMPDIR` during job execution
 
@@ -85,29 +109,28 @@ If job is killed due to memory:
 - Increase `#$ -mods l_hard m_mem_free` value
 - Reduce `#$ -pe smp` cores and `CORES` variable
 
+### Conda Environment Not Found
+
+If you get errors about missing commands (aws, snakemake):
+- Make sure you activated your conda environment BEFORE running qsub
+- The `-V` flag only exports the environment that exists when you submit
+- Verify: `conda activate snakemake` then `qsub submit_snakemake_cluster.sh`
+
+### rsync Command Not Found
+
+If rsync is not available on the cluster:
+- Replace `rsync -av` with `cp -r` in the submission script
+- Open the script and change lines with `rsync` to use `cp` instead
+
 ## Advanced Usage
-
-### Using a Config File
-
-Uncomment the alternative snakemake command in the script:
-
-```bash
-snakemake \
-    --cores ${CORES} \
-    --configfile ${CONFIG_FILE} \
-    --config download_dir="${TMP_DOWNLOAD_DIR}" \
-    --rerun-incomplete \
-    --printshellcmds
-```
 
 ### Adding Additional Snakemake Options
 
-Add any snakemake flags you need to the snakemake command, for example:
+Edit the snakemake command in the script to add any flags you need:
 
 ```bash
 snakemake \
     --cores ${CORES} \
-    --config download_dir="${TMP_DOWNLOAD_DIR}" \
     --rerun-incomplete \
     --printshellcmds \
     --use-conda \

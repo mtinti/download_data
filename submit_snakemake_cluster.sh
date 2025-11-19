@@ -17,17 +17,11 @@ set -u
 # CONFIGURATION - UPDATE THESE VARIABLES AS NEEDED
 ##############################################################################
 
-# Original download directory (where files should end up)
-DOWNLOAD_DIR="Downloads"
-
-# Snakemake configuration file (if using)
-# CONFIG_FILE="config.yaml"
-
 # Number of cores for Snakemake to use (should match -pe smp above)
 CORES=40
 
 ##############################################################################
-# TMPDIR SETUP - Automatic handling of temporary directory
+# SETUP - Copy project to TMPDIR and run from there
 ##############################################################################
 
 echo "Job started at: $(date)"
@@ -35,55 +29,81 @@ echo "Job ID: $JOB_ID"
 echo "Running on node: $(hostname)"
 echo "TMPDIR: ${TMPDIR}"
 
-# Create temporary download directory in TMPDIR
-TMP_DOWNLOAD_DIR="${TMPDIR}/Downloads"
-mkdir -p "${TMP_DOWNLOAD_DIR}"
+# Save the original submission directory
+SUBMIT_DIR=$(pwd)
+echo "Submission directory: ${SUBMIT_DIR}"
 
-echo "Created temporary download directory: ${TMP_DOWNLOAD_DIR}"
+# Create project directory in TMPDIR
+PROJECT_NAME=$(basename "${SUBMIT_DIR}")
+TMPDIR_PROJECT="${TMPDIR}/${PROJECT_NAME}"
 
-# Create the actual download directory if it doesn't exist
-mkdir -p "${DOWNLOAD_DIR}"
+echo "Copying project to TMPDIR..."
+echo "Source: ${SUBMIT_DIR}"
+echo "Destination: ${TMPDIR_PROJECT}"
+
+# Copy entire project to TMPDIR (excluding hidden files like .git, .snakemake)
+mkdir -p "${TMPDIR_PROJECT}"
+rsync -av \
+    --exclude='.git' \
+    --exclude='.snakemake' \
+    --exclude='Downloads' \
+    --exclude='*.pyc' \
+    --exclude='__pycache__' \
+    "${SUBMIT_DIR}/" "${TMPDIR_PROJECT}/"
+
+echo "Project copied successfully"
+
+# Change to TMPDIR project directory
+cd "${TMPDIR_PROJECT}"
+echo "Working directory: $(pwd)"
 
 ##############################################################################
-# RUN SNAKEMAKE WITH TMPDIR OVERRIDE
+# RUN SNAKEMAKE FROM TMPDIR
 ##############################################################################
 
 echo "Starting Snakemake workflow at: $(date)"
 
-# Run Snakemake with download directory override
-# The --config flag overrides the download_dir parameter
+# Run Snakemake from TMPDIR (Downloads will be created here)
 snakemake \
     --cores ${CORES} \
-    --config download_dir="${TMP_DOWNLOAD_DIR}" \
     --rerun-incomplete \
     --printshellcmds
-
-# Alternative if using a config file:
-# snakemake \
-#     --cores ${CORES} \
-#     --configfile ${CONFIG_FILE} \
-#     --config download_dir="${TMP_DOWNLOAD_DIR}" \
-#     --rerun-incomplete \
-#     --printshellcmds
 
 echo "Snakemake workflow completed at: $(date)"
 
 ##############################################################################
-# COPY FILES BACK FROM TMPDIR TO FINAL LOCATION
+# COPY RESULTS BACK TO SUBMISSION DIRECTORY
 ##############################################################################
 
-echo "Copying files from TMPDIR to final location..."
-echo "Source: ${TMP_DOWNLOAD_DIR}"
-echo "Destination: ${DOWNLOAD_DIR}"
+echo "Copying results from TMPDIR to submission directory..."
+echo "Source: ${TMPDIR_PROJECT}/Downloads"
+echo "Destination: ${SUBMIT_DIR}/Downloads"
 
-# Copy all files from temporary directory to final directory
-# Using -a to preserve attributes and -v for verbose output
-cp -av "${TMP_DOWNLOAD_DIR}"/* "${DOWNLOAD_DIR}"/
+# Create Downloads directory in submission directory if it doesn't exist
+mkdir -p "${SUBMIT_DIR}/Downloads"
+
+# Copy Downloads directory back to submission directory
+if [ -d "${TMPDIR_PROJECT}/Downloads" ]; then
+    rsync -av "${TMPDIR_PROJECT}/Downloads/" "${SUBMIT_DIR}/Downloads/"
+    echo "Downloads copied successfully"
+else
+    echo "WARNING: No Downloads directory found in TMPDIR project"
+fi
+
+# Also copy back logs
+echo "Copying logs back to submission directory..."
+if [ -d "${TMPDIR_PROJECT}/logs" ]; then
+    rsync -av "${TMPDIR_PROJECT}/logs/" "${SUBMIT_DIR}/logs/"
+    echo "Logs copied successfully"
+fi
 
 echo "File copy completed at: $(date)"
 
 # List final files
 echo "Files in final download directory:"
-ls -lh "${DOWNLOAD_DIR}"
+ls -lh "${SUBMIT_DIR}/Downloads" || echo "Downloads directory is empty or doesn't exist"
+
+# Return to submission directory
+cd "${SUBMIT_DIR}"
 
 echo "Job completed successfully at: $(date)"
