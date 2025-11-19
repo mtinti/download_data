@@ -26,11 +26,12 @@ git clone https://github.com/mtinti/download_data.git
 
 # 6. Create and activate conda environment (this step is done only once)
 conda create -n snakemake snakemake
+# 6b. (this step is every time)
 conda activate snakemake
 
 # 7. Navigate to the repository
 cd download_data
-# 7b. git pull (THis is done ot fetch any updates from the git repo)
+# 7b. git pull (this step is every time)
 
 # 8. Configure the pipeline
 nano config/config.yml  # Add your AWS credentials and bucket info
