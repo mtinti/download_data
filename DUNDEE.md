@@ -49,6 +49,30 @@ Downloads/checksum_validation.txt # output for md5 check
 Downloads/md5_checkpoint.txt # flag md5 was succesfull
 Downloads/sync_complete.txt # flag sync was successful
 
+## Quick Vim Guide for Editing Config
+
+When you run `vim config/config.yml.template`, follow these steps:
+
+1. **Press `i`** - Enter INSERT mode (you'll see `-- INSERT --` at the bottom)
+
+2. **Navigate and edit:**
+   - Use arrow keys to move the cursor to the line you want to change
+   - Delete the placeholder text (use Backspace or Delete)
+   - Copy-paste (or type) the correct values
+
+3. **Press `Esc`** - Exit INSERT mode (back to NORMAL mode)
+
+4. **Save the file with a new name:**
+   - Type `:w config/config.yml` and press Enter
+   - This saves your edited version as `config/config.yml` (keeps the template unchanged)
+
+5. **Quit vim:**
+   - Type `:q!` and press Enter
+   - This quits vim without making any changes to the template file
+
+**Alternative workflow (if you want to save and quit in one step):**
+- After step 3, type `:wq config/config.yml` and press Enter (saves as config.yml and quits)
+
 ## Important Notes
 
 ### Screen Session Management
