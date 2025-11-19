@@ -47,7 +47,7 @@ download_data/
 
 ## Configuration
 
-### Option 1: Using Config File (Recommended for Development)
+### Option 1: Using Config File
 
 Edit `config/config.yml`:
 
@@ -67,31 +67,6 @@ validation:
 snakemake:
   sync_threads: 2
 ```
-
-**⚠️ Security Note**: Never commit AWS credentials to git! Add `config/config.yml` to `.gitignore`.
-
-### Option 2: Using Separate Config File (Recommended for Production)
-
-Create a separate config file outside the repository:
-
-```bash
-# Create a config file with your credentials (not tracked by git)
-cat > ~/my-aws-config.yml <<EOF
-aws:
-  bucket: "your-bucket-name"
-  region: "us-east-1"
-  access_key_id: "YOUR_ACCESS_KEY"
-  secret_access_key: "YOUR_SECRET_KEY"
-  sync_extra_args: []
-download_dir: "Downloads"
-validation:
-  md5_filenames:
-    - "md5.txt"
-    - "md5sum_check.txt"
-  validation_dir: "validation"
-snakemake:
-  sync_threads: 2
-EOF
 
 # Run pipeline with custom config
 snakemake --use-conda --cores 4 --configfile ~/my-aws-config.yml
