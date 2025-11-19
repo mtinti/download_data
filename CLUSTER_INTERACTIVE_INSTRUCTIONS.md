@@ -36,7 +36,7 @@ cd download_data
 # 8. Configure the pipeline
 vim config/config.yml.template  # Add your AWS credentials and bucket info to the file, save it as config/config.yml
 # For this step, either use vim directly
-# or open it from your shared folder (use a Mac or Linux machine; Windows might cause problems)
+# or open it from your shared folder (use a Mac or Linux machine; Windows users use notepad++)
 
 
 # 9. Run the pipeline
@@ -44,10 +44,10 @@ snakemake --use-conda --cores 10
 ```
 ## Expected outputs
 
-Downloads/bucket_name
-Downloads/checksum_validation.txt # output for md5 check
-Downloads/md5_checkpoint.txt # flag md5 was succesfull
-Downloads/sync_complete.txt # flag sync was successful
+- Downloads/bucket_name
+- Downloads/checksum_validation.txt # output for md5 check
+- Downloads/md5_checkpoint.txt # flag md5 was succesfull
+- Downloads/sync_complete.txt # flag sync was successful
 
 ## Quick Vim Guide for Editing Config
 
