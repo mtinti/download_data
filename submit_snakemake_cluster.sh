@@ -20,32 +20,6 @@ set -u
 # Number of cores for Snakemake to use (should match -pe smp above)
 CORES=40
 
-# Conda prefix for Snakemake environments (where conda envs will be stored)
-# If empty, Snakemake will use default location (.snakemake/conda)
-# Example: SNAKEMAKE_CONDA_PREFIX="${HOME}/.snakemake/conda"
-SNAKEMAKE_CONDA_PREFIX=""
-
-##############################################################################
-# CONDA INITIALIZATION
-##############################################################################
-
-echo "Initializing conda..."
-
-# Initialize conda for bash shell
-# This allows Snakemake to create new conda environments for rules
-if [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
-    source "${HOME}/miniconda3/etc/profile.d/conda.sh"
-elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
-    source "${HOME}/anaconda3/etc/profile.d/conda.sh"
-elif [ -f "/opt/conda/etc/profile.d/conda.sh" ]; then
-    source "/opt/conda/etc/profile.d/conda.sh"
-else
-    echo "WARNING: Could not find conda installation"
-    echo "Conda environments may not work properly"
-fi
-
-echo "Conda initialized"
-
 ##############################################################################
 # SETUP - Copy project to TMPDIR and run from there
 ##############################################################################
@@ -91,11 +65,6 @@ echo "Starting Snakemake workflow at: $(date)"
 
 # Build snakemake command with optional conda prefix
 SNAKEMAKE_CMD="snakemake --cores ${CORES} --use-conda --rerun-incomplete --printshellcmds"
-
-if [ -n "${SNAKEMAKE_CONDA_PREFIX}" ]; then
-    echo "Using conda prefix: ${SNAKEMAKE_CONDA_PREFIX}"
-    SNAKEMAKE_CMD="${SNAKEMAKE_CMD} --conda-prefix ${SNAKEMAKE_CONDA_PREFIX}"
-fi
 
 # Run Snakemake from TMPDIR (Downloads will be created here)
 echo "Running: ${SNAKEMAKE_CMD}"
