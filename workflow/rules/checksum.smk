@@ -116,22 +116,18 @@ def get_files_to_validate(wildcards):
     """Return list of files to validate from checkpoint."""
     checkpoint_output = checkpoints.find_md5_files.get(**wildcards)
 
-    # Get bucket directory and validation directory from checkpoint
+    # Get validation directory from checkpoint
     checkpoint_file = str(MD5_CHECKPOINT)
-    bucket_dir = None
+    validation_dir = None
     with open(checkpoint_file, 'r') as f:
         for line in f:
-            if line.startswith("Bucket directory:"):
-                bucket_dir = Path(line.split(":", 1)[1].strip())
+            if line.startswith("Validation directory:"):
+                validation_dir = Path(line.split(":", 1)[1].strip())
                 break
 
-    if not bucket_dir:
-        raise WorkflowError("Could not find bucket directory in checkpoint file")
+    if not validation_dir:
+        raise WorkflowError("Could not find validation directory in checkpoint file")
 
-    # Get bucket name relative to DOWNLOAD_DIR
-    bucket_name = bucket_dir.relative_to(DOWNLOAD_DIR)
-
-    validation_dir = bucket_dir / validation_cfg.get("validation_dir", "validation")
     file_list_path = validation_dir / "files_to_validate.txt"
 
     validation_markers = []
@@ -143,8 +139,7 @@ def get_files_to_validate(wildcards):
             parts = line.split('\t')
             if len(parts) == 3:
                 idx, md5_hash, filepath = parts
-                # Use the wildcard pattern with bucket_dir
-                marker_path = str(DOWNLOAD_DIR / bucket_name / "validation" / f"{idx}.validated")
+                marker_path = str(VALIDATION_DIR / f"{idx}.validated")
                 validation_markers.append(marker_path)
 
     return validation_markers
@@ -155,9 +150,9 @@ rule validate_file_checksum:
     input:
         file_list=get_file_list_path
     output:
-        validation_marker=str(DOWNLOAD_DIR) + "/{bucket_dir}/validation/{file_id}.validated"
+        validation_marker=str(VALIDATION_DIR) + "/{file_id}.validated"
     log:
-        "logs/validation/{bucket_dir}/{file_id}.log"
+        "logs/validation/{file_id}.log"
     conda:
         "../envs/sync.yml"
     shell:
